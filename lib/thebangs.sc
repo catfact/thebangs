@@ -2,6 +2,7 @@
 // pulse wave with perc envelopes, triggered on freq
 // now with voice limit
 Thebangs  {
+	classvar maxVoices = 8;
 
 	var server;
 
@@ -18,9 +19,11 @@ Thebangs  {
 	// some bangs
 	var bangs;
 	// the bang - a method of Bangs, as a string
-	var <>thebang;
+	var <thebang;
 	// which bang - numerical index
-	var <>whichbang;
+	var <whichbang;
+
+	var <voicer;
 
 	*new {
 		^super.new.init;
@@ -43,6 +46,8 @@ Thebangs  {
 		bangs = Bangs.class.methods.collect({|m| m.name});
 
 		this.setWhichBang(0);
+
+		voicer = OneshotVoicer.new(maxVoices);
 	}
 
 	setBang{ arg name;
@@ -55,23 +60,31 @@ Thebangs  {
 	}
 
 	bang { arg hz;
-		var synth;
+		var srv, fn;
 		if (hz != nil, { hz1 = hz; });
-		synth = {
-			arg gate=1;
-			var snd, perc, ender;
+		srv = server;
 
-			perc = EnvGen.ar(Env.perc(attack, release), doneAction:Done.freeSelf);
-			ender = EnvGen.ar(Env.asr(0, 1, 0.01), gate:gate, doneAction:Done.freeSelf);
+		fn = {
+			var syn;
+			postln("hello from thebangs...");
+			syn = {
+				arg gate=1;
+				var snd, perc, ender;
 
-			snd = Bangs.perform(thebang, hz1, mod1, hz2, mod2, perc);
+				perc = EnvGen.ar(Env.perc(attack, release), doneAction:Done.freeSelf);
+				ender = EnvGen.ar(Env.asr(0, 1, 0.01), gate:gate, doneAction:Done.freeSelf);
 
-			Out.ar(0, Pan2.ar(snd * perc * amp * ender));
+				snd = Bangs.perform(thebang, hz1, mod1, hz2, mod2, perc);
 
-		}.play(server);
+				Out.ar(0, Pan2.ar(snd * perc * amp * ender));
+
+			}.play(srv);
+			syn
+		};
+
+		voicer.newVoice(fn);
 
 	}
-
 
 
 }
