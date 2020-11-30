@@ -1,10 +1,16 @@
 // thin wrapper around `thebangs` for norns
 
-Engine_thebangs : CroneEngine {
+Engine_Thebangs : CroneEngine {
 
 	var thebangs;
+
+
 	
-	init {
+	*new { arg context, doneCallback;
+		^super.new(context, doneCallback);
+	}
+
+	alloc {
 		thebangs = Thebangs.new;
 
 		// TODO: should probably clamp incoming values.
@@ -19,23 +25,27 @@ Engine_thebangs : CroneEngine {
 			thebangs.bang;
 		});
 
+		
 		// each of these commands calls a correspondingly-named setter,
 		// with a single float argument
 		["hz2", "mod1", "mod2", "amp", "pan", "attack", "release"].do({
 			arg str;
+			str.postln;
+			postln("wtf");
 			this.addCommand(str, "f", { arg msg;
-				thebangs.perform(str++"_", msg[1]);
+				thebangs.perform((str++"_").asSymbol, msg[1]);
 			});
 		});
-
+		
+		
 		// select the synthesis algorithm by name
 		this.addCommand("algoName", "s", { arg msg;
 			thebangs.bang = msg[1];
 		});
 
 		// select the synthesis algorithm by index
-		this.addCommand("soundIndex", "i", { arg msg;
-			thebangs.whichBang = msg[1];
+		this.addCommand("algoIndex", "i", { arg msg;
+			thebangs.whichBang = msg[1]-1; // convert from 1-based
 		});
 
 		// select the voice-stealing mode
@@ -48,7 +58,7 @@ Engine_thebangs : CroneEngine {
 		});
 
 		// set the voice-stealing index to be used with stealMode=0
-		this.addCommend("stealIndex", "i", { arg msg;
+		this.addCommand("stealIndex", "i", { arg msg;
 			thebangs.voicer.stealIdx = msg[1];
 		});
 
@@ -71,7 +81,7 @@ Engine_thebangs : CroneEngine {
 		});
 
 		this.addCommand("pw", "f", { arg msg;
-			thebangs.mod1 = msg[1];
+			thebangs.mod1 = msg[1]; 
 		});
 
 		this.addCommand("cutoff", "f", { arg msg;

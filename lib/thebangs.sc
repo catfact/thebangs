@@ -1,6 +1,5 @@
-// CroneEngine_PolyPercLimited
-// pulse wave with perc envelopes, triggered on freq
-// now with voice limit
+// "the" bangs
+
 Thebangs  {
 	classvar maxVoices = 8;
 
@@ -46,7 +45,7 @@ Thebangs  {
 
 		bangs = Bangs.class.methods.collect({|m| m.name});
 
-		this.setWhichBang(0);
+		this.whichBang = 0;
 
 		voicer = OneshotVoicer.new(maxVoices);
 	}
