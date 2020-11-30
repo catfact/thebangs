@@ -14,7 +14,7 @@ OneshotVoicer {
 	// 1: FIFO (steal oldest)
 	// 2: LIFO (steal newest)
 	// 3: ignore (do nothing until a voice slot becomes free)
-	var <>stealMode = 1; // FIFO by default
+	var <stealMode = 1; // FIFO by default
 
 	// explicit voice index to steal
 	var <>stealIdx = 0;
@@ -29,15 +29,22 @@ OneshotVoicer {
 		voices = Array.new;
 	}
 
+	stealMode_ { arg mode;
+		postln("steal mode: " ++ mode);
+		stealMode = mode;
+	}
+	
 	maxVoices_ { arg max;
 		if (max < maxVoices, {
 			// if we lower the current count of voices,
 			// we should also stop any excess voices currently running
 			var activeVoiceCount = this.countActiveVoices;
+			/*
 			while ({activeVoiceCount > max}, {
 				this.stealVoice(activeVoiceCount);
 				activeVoiceCount = this.countActiveVoices;
 			});
+			*/
 		});
 		maxVoices = max;
 	}
@@ -45,13 +52,7 @@ OneshotVoicer {
 	// count active voices, pruning references to inactive ones from the list
 	countActiveVoices {
 		// prune all non-running voices
-		voices = voices.select({ arg v;
-			if (v.isNil, {
-				false
-			}, {
-				v.isPlaying
-			});
-		});
+		voices = voices.select({ arg v; v.isPlaying });
 		^voices.size;
 	}
 
@@ -67,7 +68,9 @@ OneshotVoicer {
 			this.addVoice(fn);
 		}, {
 			this.stealVoice(activeVoiceCount);
-			this.addVoice(fn);
+			if (stealMode != 3, {
+				this.addVoice(fn);
+			});
 		});
 	}
 
@@ -83,9 +86,12 @@ OneshotVoicer {
 
 	// steal a specific voice by index
 	stealVoiceIdx { arg idx;
-		var idxClamp = idx.max(0).min(voices.size-1);
-		var v = voices[idxClamp];
+		var idxClamp, v;
+		idxClamp = idx.max(0).min(voices.size-1);
+		v = voices[idxClamp];
 
+		postln("stealing: " ++ idx ++ " (" ++ idxClamp ++ ")");
+		
 		if (v.isNil.not, {
 			if (v.isPlaying, {
 				// cause the stolen voice to stop "real soon"

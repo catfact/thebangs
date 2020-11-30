@@ -30,8 +30,6 @@ Engine_Thebangs : CroneEngine {
 		// with a single float argument
 		["hz2", "mod1", "mod2", "amp", "pan", "attack", "release"].do({
 			arg str;
-			str.postln;
-			postln("wtf");
 			this.addCommand(str, "f", { arg msg;
 				thebangs.perform((str++"_").asSymbol, msg[1]);
 			});

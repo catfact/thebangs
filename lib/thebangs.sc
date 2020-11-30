@@ -1,9 +1,10 @@
 // "the" bangs
 
 Thebangs  {
-	classvar maxVoices = 8;
+	classvar maxVoices = 32;
 
 	var server;
+	var group;
 
 	// synth params
 	var <>hz1;
@@ -31,6 +32,7 @@ Thebangs  {
 	init {
 		arg srv;
 		server = srv;
+		group = Group.new(server);
 
 		// default parameter values
 		hz1 = 330;
@@ -44,6 +46,7 @@ Thebangs  {
 		pan = 0.0;
 
 		bangs = Bangs.class.methods.collect({|m| m.name});
+		bangs.do({|name| postln(name); });
 
 		this.whichBang = 0;
 
@@ -60,10 +63,14 @@ Thebangs  {
 	}
 
 	bang { arg hz;
-		var srv, fn;
-		if (hz != nil, { hz1 = hz; });
-		srv = server;
+		var fn, gr, srv;
+		postln("bang!");
 
+		if (hz != nil, { hz1 = hz; });
+
+		srv = server;
+		gr = group;
+		
 		fn = {
 			var syn;
 			syn = {
@@ -86,6 +93,14 @@ Thebangs  {
 
 
 	freeAllNotes {
+		// do need this to keep the voicer in sync..
 		voicer.stopAllVoices;
+		group.set(\gate, 0);
 	}
+
+	free {
+		group.set(\gate, 0);
+	}
+
+	
 }
