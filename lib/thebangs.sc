@@ -25,12 +25,13 @@ Thebangs  {
 
 	var <voicer;
 
-	*new {
-		^super.new.init;
+	*new { arg srv;
+		^super.new.init(srv);
 	}
 
 	init {
-		server = Server.default;
+		arg srv;
+		server = srv;
 
 		// default parameter values
 		hz1 = 330;
@@ -50,11 +51,11 @@ Thebangs  {
 		voicer = OneshotVoicer.new(maxVoices);
 	}
 
-	setBang{ arg name;
+	bang_{ arg name;
 		thebang = name;
 	}
 
-	setWhichBang { arg i;
+	whichBang_ { arg i;
 		whichbang = i;
 		thebang = bangs[whichbang];
 	}
@@ -82,8 +83,10 @@ Thebangs  {
 		};
 
 		voicer.newVoice(fn);
-
 	}
 
 
+	freeAllNotes {
+		voicer.stopAllVoices;
+	}
 }

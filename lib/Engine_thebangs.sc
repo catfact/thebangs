@@ -1,50 +1,88 @@
-Engine_thenbangs : CroneEngine {
-	 classvar maxVoices = 16;
-	 var server;
-	 var pg;
-	 var amp=0.3;
-	 var release=0.5;
-	 var pw=0.5;
-	 var cutoff=1000;
-	 var gain=2;
-	 var pan = 0;
+// thin wrapper around `thebangs` for norns
 
+Engine_thebangs : CroneEngine {
+
+	var thebangs;
+	
 	init {
-		this.addCommand("hz", "f", { arg msg;
-			var val = msg[1];
-			this.playNote(val);
+		thebangs = Thebangs.new;
+
+		// TODO: should probably clamp incoming values.
+		// or, at minimum, provide a lua layer which does so
+		// (e.g. by defining parameters.)
+
+
+		// setting the primary frequency also triggers a new self-freeing synth voice.
+		// this is the defining behavior of a Bang.
+		this.addCommand("hz1", "f", { arg msg;
+			thebangs.hz1 = msg[1];
+			thebangs.bang;
 		});
 
-		this.addCommand("amp", "f", { arg msg;
-			amp = msg[1];
+		// each of these commands calls a correspondingly-named setter,
+		// with a single float argument
+		["hz2", "mod1", "mod2", "amp", "pan", "attack", "release"].do({
+			arg str;
+			this.addCommand(str, "f", { arg msg;
+				thebangs.perform(str++"_", msg[1]);
+			});
+		});
+
+		// select the synthesis algorithm by name
+		this.addCommand("algoName", "s", { arg msg;
+			thebangs.bang = msg[1];
+		});
+
+		// select the synthesis algorithm by index
+		this.addCommand("soundIndex", "i", { arg msg;
+			thebangs.whichBang = msg[1];
+		});
+
+		// select the voice-stealing mode
+		// - 0: static; always steal the voice that is `stealIdx` from oldest
+		// - 1: (default): oldest first
+		// - 2: newest first
+		// - 3: ignore new notes until a voice becomes free
+		this.addCommand("stealMode", "i", { arg msg;
+			thebangs.voicer.stealMode = msg[1];
+		});
+
+		// set the voice-stealing index to be used with stealMode=0
+		this.addCommend("stealIndex", "i", { arg msg;
+			thebangs.voicer.stealIdx = msg[1];
+		});
+
+		// stop all currently sustaining voices
+		this.addCommand("stopAllVoices", "", { arg msg;
+			thebangs.voicer.stopAllVoices;
+		});
+
+		// set the max number of simultaneous voices
+		this.addCommand("maxVoices", "i", { arg msg;
+			thebangs.voicer.maxVoices = msg[1];
+		});
+		
+
+		//---------
+		//--- aliases for compatibility with PolyPerc
+		this.addCommand("hz", "f", { arg msg;
+			thebangs.hz1 = msg[1];
+			thebangs.bang;
 		});
 
 		this.addCommand("pw", "f", { arg msg;
-			pw = msg[1];
-		});
-
-		this.addCommand("release", "f", { arg msg;
-			release = msg[1];
+			thebangs.mod1 = msg[1];
 		});
 
 		this.addCommand("cutoff", "f", { arg msg;
-			cutoff = msg[1];
+			var val = msg[1];
+			thebangs.hz2 = val;
 		});
 
 		this.addCommand("gain", "f", { arg msg;
-			gain = msg[1];
+			thebangs.mod2 = msg[1];
 		});
 
-		this.addCommand("pan", "f", { arg msg;
-			postln("pan: " ++ msg[1]);
-			pan = msg[1];
-		});
-
-		this.addCommand("freeAllNotes", "", {
-			// immediately free all currently sustaining notes.
-			// this simply ignores any currently sustaining envelopes, so will cause clicks.
-			pg.freeAll;
-		});
 
 	}
 }

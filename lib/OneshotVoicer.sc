@@ -4,7 +4,7 @@
 // - synths have a \gate argument, and setting this to zero will free the synth quickly
 
 OneshotVoicer {
-	var <>maxVoices = 32;
+	var <maxVoices = 32;
 
 	// the voice array
 	var <voices;
@@ -13,7 +13,7 @@ OneshotVoicer {
 	// 0: explicit (steal the oldest plus N)
 	// 1: FIFO (steal oldest)
 	// 2: LIFO (steal newest)
-	// 3: ignore (do nothing until a voice is free)
+	// 3: ignore (do nothing until a voice slot becomes free)
 	var <>stealMode = 1; // FIFO by default
 
 	// explicit voice index to steal
@@ -29,11 +29,21 @@ OneshotVoicer {
 		voices = Array.new;
 	}
 
-	// request a new note
-	// arg f: function returning a Synth which conforms to the assumptions
-	newVoice { arg fn;
-		var idx, voiceCount;
+	maxVoices_ { arg max;
+		if (max < maxVoices, {
+			// if we lower the current count of voices,
+			// we should also stop any excess voices currently running
+			var activeVoiceCount = this.countActiveVoices;
+			while (activeVoiceCount > max, {
+				this.stealVoice(activeVoiceCount);
+				activeVoiceCount = this.countActiveVoices;
+			});
+		});
+		maxVoices = max;
+	}
 
+	// count active voices, pruning references to inactive ones from the list
+	countActiveVoices {
 		// prune all non-running voices
 		voices = voices.select({ arg v;
 			if (v.isNil, {
@@ -42,22 +52,37 @@ OneshotVoicer {
 				v.isPlaying
 			});
 		});
-		voiceCount = voices.size;
+		^voices.size;
+	}
 
-		if (voiceCount < maxVoices, {
+	// request a new voice to be added
+	// arg f: function returning a Synth which conforms to the assumptions
+	newVoice { arg fn;
+		var activeVoiceCount;
+		
+		activeVoiceCount = this.countActiveVoices;
+
+		if (activeVoiceCount < maxVoices, {
 			// still room to grow: add a voice without stealing
 			this.addVoice(fn);
 		}, {
-			switch(stealMode,
-				0, { this.steal(stealIdx, fn) },
-				1, { this.steal(0, fn) },
-				2, { this.steal(voiceCount-1, fn) },
-				3, { /* do nothing */ }
-			);
+			this.stealVoice(activeVoiceCount);
+			this.addVoice(fn);
 		});
 	}
 
-	steal { arg idx, fn;
+	// steal the next running voice according to the current heuristic
+	stealVoice { arg activeVoiceCount;		
+		switch(stealMode,
+			0, { this.stealVoiceIdx(stealIdx) },
+			1, { this.stealVoiceIdx(0) },
+			2, { this.stealVoiceIdx(activeVoiceCount-1) },
+			3, { /* do nothing */ }
+		);
+	}
+
+	// steal a specific voice by index
+	stealVoiceIdx { arg idx;
 		var idxClamp = idx.max(0).min(voices.size-1);
 		var v = voices[idxClamp];
 
@@ -69,12 +94,9 @@ OneshotVoicer {
 			// remove its reference from the books
 			voices.removeAt(idxClamp);
 		});
-
-		// add a new voice
-		this.addVoice(fn);
-		//this.printVoiceArray;
 	}
 
+	// add a voice, given a Synth-creating function
 	addVoice { arg fn;
 		var syn;
 		syn = fn.value;
@@ -84,10 +106,4 @@ OneshotVoicer {
 		});
 	}
 
-	printVoiceArray {
-		voices.do({ arg x, i;
-			if (x.isNil, { post("!") }, {post(".")});
-		});
-		postln("")
-	}
 }
