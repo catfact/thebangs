@@ -35,16 +35,14 @@ OneshotVoicer {
 	}
 	
 	maxVoices_ { arg max;
-		if (max < maxVoices, {
+		if (max < maxVoices && stealMode != 3, {
 			// if we lower the current count of voices,
 			// we should also stop any excess voices currently running
 			var activeVoiceCount = this.countActiveVoices;
-			/*
 			while ({activeVoiceCount > max}, {
 				this.stealVoice(activeVoiceCount);
 				activeVoiceCount = this.countActiveVoices;
 			});
-			*/
 		});
 		maxVoices = max;
 	}
@@ -112,4 +110,8 @@ OneshotVoicer {
 		});
 	}
 
+	stopAllVoices {
+		voices.do({ |v| v.set(\gate, 0); });
+	}
+	
 }

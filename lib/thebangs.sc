@@ -53,23 +53,29 @@ Thebangs  {
 		voicer = OneshotVoicer.new(maxVoices);
 	}
 
+	//--- setters
 	bang_{ arg name;
+		postln("bang_("++name++")");
 		thebang = name;
 	}
 
 	whichBang_ { arg i;
+		postln("whichBang_("++i++")");
 		whichbang = i;
 		thebang = bangs[whichbang];
 	}
 
+	// bang!
 	bang { arg hz;
-		var fn, gr, srv;
+		var fn;
+
+		/*
 		postln("bang!");
-
+		postln([hz1, mod1, hz2, mod2, amp, pan, attack, release]);
+		postln([server, group]);
+		*/
+		
 		if (hz != nil, { hz1 = hz; });
-
-		srv = server;
-		gr = group;
 		
 		fn = {
 			var syn;
@@ -84,23 +90,19 @@ Thebangs  {
 
 				Out.ar(0, Pan2.ar(snd * perc * amp * ender, pan));
 
-			}.play(srv);
+			}.play(group);
 			syn
 		};
 
 		voicer.newVoice(fn);
 	}
 
-
+	
 	freeAllNotes {
 		// do need this to keep the voicer in sync..
 		voicer.stopAllVoices;
+		// but it should ultimately do the same as this (more reliable):
 		group.set(\gate, 0);
 	}
 
-	free {
-		group.set(\gate, 0);
-	}
-
-	
 }

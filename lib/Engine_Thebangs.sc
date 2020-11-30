@@ -3,20 +3,17 @@
 Engine_Thebangs : CroneEngine {
 
 	var thebangs;
-
-
 	
 	*new { arg context, doneCallback;
 		^super.new(context, doneCallback);
 	}
 
 	alloc {
-		thebangs = Thebangs.new;
+		thebangs = Thebangs.new(Crone.server);
 
 		// TODO: should probably clamp incoming values.
 		// or, at minimum, provide a lua layer which does so
 		// (e.g. by defining parameters.)
-
 
 		// setting the primary frequency also triggers a new self-freeing synth voice.
 		// this is the defining behavior of a Bang.
@@ -26,7 +23,7 @@ Engine_Thebangs : CroneEngine {
 		});
 
 		
-		// each of these commands calls a correspondingly-named setter,
+		// each of these commands simply calls a correspondingly-named setter,
 		// with a single float argument
 		["hz2", "mod1", "mod2", "amp", "pan", "attack", "release"].do({
 			arg str;
@@ -71,8 +68,8 @@ Engine_Thebangs : CroneEngine {
 		});
 		
 
-		//---------
-		//--- aliases for compatibility with PolyPerc
+		//---------------------------------------------------
+		//--- command aliases for compatibility with PolyPerc
 		this.addCommand("hz", "f", { arg msg;
 			thebangs.hz1 = msg[1];
 			thebangs.bang;
@@ -91,6 +88,9 @@ Engine_Thebangs : CroneEngine {
 			thebangs.mod2 = msg[1];
 		});
 
+	}
 
+	free {
+		thebangs.freeAllNotes;
 	}
 }

@@ -41,33 +41,52 @@ Bangs {
 		^MoogFF.ar(snd, hh, mod2);
 	}
 
-	// harmonic klang
-	*klangha {
+	
+	// additive with linear partials
+	*klanglin {
 		arg hz1, mod1, hz2, mod2, env;
-		var freqGrowth, ampDecay, freqArr, ampArr, sz;
-		freqGrowth = 2 ** (mod1);
-		ampDecay = 1 - (0.5 ** (mod2));
-		freqArr = Array.geom(16, hz1, freqGrowth).select({|x| x <= hz2});
-		sz = freqArr.size;
-		ampArr = Array.geom(16, 1, ampDecay);
-		ampArr = ampArr[0..(sz-1)];
-		//postln(ampArr);
-		^Klang.ar(`[freqArr, ampArr, nil]) / sz;
-	}
-
-	// enharmonic klang
-	*klangen {
-		arg hz1, mod1, hz2, mod2, env;
-		var freqGrowth, ampDecay, freqArr, ampArr, sz;
+		
+		var freqGrowth, ampDecay,
+		freqArr, ampArr, phaseArr,
+		sz, amp;
+		
 		freqGrowth = hz1 * mod1 * 2;
 		ampDecay = 1 - (0.5 ** (mod2));
 		freqArr = Array.series(16, hz1, freqGrowth).select({|x| x <= hz2});
+		if (freqArr.isEmpty, { freqArr = [hz1] });
 		sz = freqArr.size;
 		ampArr = Array.geom(16, 1, ampDecay);
 		ampArr = ampArr[0..(sz-1)];
-		//postln(ampArr);
-		^Klang.ar(`[freqArr, ampArr, nil]) / sz;		
+		amp = 1.0 / ampArr.sum * 0.25;
+		phaseArr = Array.fill(sz, {|i| i * (pi/sz)});
+		^Mix.new(freqArr.collect({|f,i|
+			Pan2.ar(SinOsc.ar(f, phaseArr[i]) * ampArr[i], i.linlin(0, sz-1, -0.5, 0.5))
+		}))*amp;
+
 	}
+	
+	// additive with exponential partials
+	*klangexp {
+		arg hz1, mod1, hz2, mod2, env;
+		
+		var freqGrowth, ampDecay,
+		freqArr, ampArr, phaseArr,
+		sz, amp;		
+		freqGrowth = 2 ** (mod1);
+		ampDecay = 1 - (0.5 ** (mod2));
+		freqArr = Array.geom(16, hz1, freqGrowth).select({|x| x <= hz2});
+		if (freqArr.isEmpty, { freqArr = [hz1] });
+		sz = freqArr.size;
+		ampArr = Array.geom(16, 1, ampDecay);
+		ampArr = ampArr[0..(sz-1)];
+		amp = 1.0 / ampArr.sum * 0.25;
+		phaseArr = Array.fill(sz, {|i| i * (pi/sz)});		
+		^Mix.new(freqArr.collect({|f,i|
+			Pan2.ar(SinOsc.ar(f, phaseArr[i]) * ampArr[i], i.linlin(0, sz-1, -0.5, 0.5))
+		}))*amp;
+	}
+
+	
 		
 	
 	/// ... to be continued?

@@ -266,10 +266,13 @@ function init()
     action=function(x) engine.pan(x) end}
 
   
-  --thebangs.add_voice_params()
 
   params:add_separator()
-  thebangs.add_voice_params()
+  thebangs.add_additional_synth_params()
+  
+  params:add_separator()
+  thebangs.add_voicer_params()
+  
   hs.init()
   
   add_pattern_params()
