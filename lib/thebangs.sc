@@ -66,7 +66,6 @@ Thebangs  {
 
 		fn = {
 			var syn;
-			postln("hello from thebangs...");
 			syn = {
 				arg gate=1;
 				var snd, perc, ender;
@@ -76,7 +75,7 @@ Thebangs  {
 
 				snd = Bangs.perform(thebang, hz1, mod1, hz2, mod2, perc);
 
-				Out.ar(0, Pan2.ar(snd * perc * amp * ender));
+				Out.ar(0, Pan2.ar(snd * perc * amp * ender, pan));
 
 			}.play(srv);
 			syn

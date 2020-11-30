@@ -24,38 +24,29 @@ Bangs {
 
 	// lowpass sine fm
 	*sinfmlp {
-		arg carhz, modindex, cutoff, modratio, env;
-		^LPF.ar(PMOsc.ar(carhz, carhz * modratio, modindex), cutoff);
+		arg hz1, mod1, hz2, mod2, env;
+		^LPF.ar(PMOsc.ar(hz1, hz1 * mod2, mod1), hz2);
 	}
 
 
 	// lowpass feedback sine
 	*sinfb {
 		arg hz1, mod1, hz2, mod2, env;
-		^MoogFF.ar(SinOscFB.ar(hz1, mod1*12), hz2, mod2);
+		^MoogFF.ar(SinOscFB.ar(hz1, mod1*4), hz2, mod2);
 	}
 
-
-	// saturated resonator
-	*satrez {
-		arg hz1, mod1, hz2, mod2, env;
-		var osc = CombC.ar(Impulse.ar(0), delayTime:1/hz1, decayTime:2 ** (mod1 * 100)).distort;
-		^MoogFF.ar(osc, hz2, mod2);
-	}
 
 	// resonant noises
 	*reznoise {
 		arg hz1, mod1, hz2, mod2, env;
-		var hh = [hz1, hz1];
+		var hh = [hz1, hz2];
 		var snd = SelectX.ar(mod1, [LFNoise2.ar(hh), LFNoise1.ar(hh), LFNoise0.ar(hh)]);
-		^MoogFF.ar(SinOscFB.ar(hz1, mod1*12), hz2, mod2);
+		^MoogFF.ar(SinOscFB.ar(hz1, mod1*12), hh, mod2);
 	}
 
 
-	// resonant downsampled dusts
-	*rezdust {
-		Dust.ar
-	}
+
+	/// ... to be continued
 
 
 }
