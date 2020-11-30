@@ -51,7 +51,7 @@ Bangs {
 		sz = freqArr.size;
 		ampArr = Array.geom(16, 1, ampDecay);
 		ampArr = ampArr[0..(sz-1)];
-				postln(ampArr);
+		//postln(ampArr);
 		^Klang.ar(`[freqArr, ampArr, nil]) / sz;
 	}
 
@@ -65,7 +65,7 @@ Bangs {
 		sz = freqArr.size;
 		ampArr = Array.geom(16, 1, ampDecay);
 		ampArr = ampArr[0..(sz-1)];
-		postln(ampArr);
+		//postln(ampArr);
 		^Klang.ar(`[freqArr, ampArr, nil]) / sz;		
 	}
 		

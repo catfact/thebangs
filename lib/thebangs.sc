@@ -79,7 +79,7 @@ Thebangs  {
 
 				perc = EnvGen.ar(Env.perc(attack, release), doneAction:Done.freeSelf);
 				ender = EnvGen.ar(Env.asr(0, 1, 0.01), gate:gate, doneAction:Done.freeSelf);
-
+				
 				snd = Bangs.perform(thebang, hz1, mod1, hz2, mod2, perc);
 
 				Out.ar(0, Pan2.ar(snd * perc * amp * ender, pan));
