@@ -3,7 +3,7 @@
 // - synths are self-freeing
 // - synths have a \gate argument, and setting this to zero will free the synth quickly
 
-OneshotVoicer {
+BangsVoicer {
 	var <maxVoices = 32;
 
 	// the voice array
@@ -33,7 +33,7 @@ OneshotVoicer {
 		postln("steal mode: " ++ mode);
 		stealMode = mode;
 	}
-	
+
 	maxVoices_ { arg max;
 		if (max < maxVoices && stealMode != 3, {
 			// if we lower the current count of voices,
@@ -58,7 +58,7 @@ OneshotVoicer {
 	// arg f: function returning a Synth which conforms to the assumptions
 	newVoice { arg fn;
 		var activeVoiceCount;
-		
+
 		activeVoiceCount = this.countActiveVoices;
 
 		if (activeVoiceCount < maxVoices, {
@@ -73,7 +73,7 @@ OneshotVoicer {
 	}
 
 	// steal the next running voice according to the current heuristic
-	stealVoice { arg activeVoiceCount;		
+	stealVoice { arg activeVoiceCount;
 		switch(stealMode,
 			0, { this.stealVoiceIdx(stealIdx) },
 			1, { this.stealVoiceIdx(0) },
@@ -89,7 +89,7 @@ OneshotVoicer {
 		v = voices[idxClamp];
 
 		postln("stealing: " ++ idx ++ " (" ++ idxClamp ++ ")");
-		
+
 		if (v.isNil.not, {
 			if (v.isPlaying, {
 				// cause the stolen voice to stop "real soon"
@@ -113,5 +113,5 @@ OneshotVoicer {
 	stopAllVoices {
 		voices.do({ |v| v.set(\gate, 0); });
 	}
-	
+
 }
